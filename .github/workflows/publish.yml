@@ -1,0 +1,25 @@
+# Publishes the package to npm via OIDC trusted publishing on every version tag.
+# One-time registry setup: npm package Settings -> Trusted publisher -> GitHub Actions
+# (organization sol-parts, repository sol-stimulus-components, workflow publish.yml).
+name: Publish to npm
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      # OIDC publishing needs npm >= 11.5.1, newer than the one bundled with Node 22
+      - run: npm install -g npm@latest
+      - run: npm publish --access public
