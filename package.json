@@ -1,0 +1,40 @@
+{
+    "name": "@sol-parts/sol-stimulus-components",
+    "version": "0.1.0",
+    "description": "Composable Stimulus controllers extracted from the sol.parts e-commerce platform: swipe gestures and a dependency-light looping slideshow.",
+    "keywords": [
+        "stimulus",
+        "stimulusjs",
+        "stimulus controller",
+        "swipe",
+        "gesture",
+        "slideshow",
+        "slider",
+        "carousel"
+    ],
+    "repository": "https://github.com/sol-parts/sol-stimulus-components",
+    "author": "Andrii Didenko <andrii@didenko.dev>",
+    "contributors": [
+        "Oleksandr Nechyporuk <oleksandr@nechyporuk.name>"
+    ],
+    "license": "MIT",
+    "type": "module",
+    "sideEffects": false,
+    "files": [
+        "controllers"
+    ],
+    "exports": {
+        "./swipe": "./controllers/swipe_controller.js",
+        "./slideshow": "./controllers/slideshow_controller.js",
+        "./package.json": "./package.json"
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0.0",
+        "stimulus-use": ">=0.50.0 <1.0.0"
+    },
+    "peerDependenciesMeta": {
+        "stimulus-use": {
+            "optional": true
+        }
+    }
+}
