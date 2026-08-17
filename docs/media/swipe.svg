@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="340" viewBox="0 0 600 340" role="img" aria-label="swipe — gesture events Stimulus controller">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a"/>
+      <stop offset="1" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <linearGradient id="trail" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e879f9" stop-opacity="0"/>
+      <stop offset="1" stop-color="#e879f9"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="600" height="340" rx="14" fill="url(#bg)"/>
+  <circle cx="530" cy="20" r="130" fill="#ffffff" opacity="0.03"/>
+  <circle cx="60" cy="330" r="100" fill="#ffffff" opacity="0.04"/>
+
+  <text x="44" y="52" font-family="ui-monospace, monospace" font-size="14" fill="#a5b4fc" letter-spacing="1">&lt;div data-controller="swipe"&gt;</text>
+
+  <g transform="translate(60, 76)">
+    <rect x="0" y="0" width="480" height="180" rx="10" fill="#ffffff" opacity="0.04" stroke="#ffffff" stroke-opacity="0.12" stroke-dasharray="6 6"/>
+
+    <!-- gesture trail + pointer -->
+    <path d="M 372 96 C 300 58, 208 58, 128 84" fill="none" stroke="url(#trail)" stroke-width="5" stroke-linecap="round"/>
+    <g fill="none" stroke="#e879f9" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M 150 66 l -26 16 l 28 12"/>
+    </g>
+    <circle cx="372" cy="96" r="14" fill="#f0abfc"/>
+    <circle cx="372" cy="96" r="23" fill="none" stroke="#f0abfc" stroke-opacity="0.4" stroke-width="3"/>
+
+    <!-- dispatched events -->
+    <g font-family="ui-monospace, monospace" font-size="13">
+      <rect x="66" y="112" width="140" height="28" rx="14" fill="#0f172a" stroke="#e879f9" stroke-opacity="0.6"/>
+      <text x="136" y="131" fill="#f0abfc" text-anchor="middle">swipe:swipeLeft</text>
+      <rect x="230" y="134" width="136" height="28" rx="14" fill="#0f172a" stroke="#818cf8" stroke-opacity="0.5"/>
+      <text x="298" y="153" fill="#a5b4fc" text-anchor="middle">swipe:dragging</text>
+    </g>
+  </g>
+
+  <text x="44" y="312" font-family="ui-monospace, monospace" font-size="14" fill="#818cf8">swipe</text>
+  <text x="90" y="312" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14" fill="#94a3b8">· gestures → Stimulus events · click-safe links</text>
+</svg>

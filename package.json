@@ -1,6 +1,6 @@
 {
     "name": "@sol-parts/sol-stimulus-components",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Composable Stimulus controllers extracted from the sol.parts e-commerce platform: swipe gestures and a dependency-light looping slideshow.",
     "keywords": [
         "stimulus",
