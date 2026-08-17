@@ -1,5 +1,12 @@
 import { Controller } from '@hotwired/stimulus';
-import { useWindowFocus } from 'stimulus-use';
+
+// Slide-transition duration: the transform and the container aspect-ratio animate with the
+// same value, so the height never keeps stretching after the slide has already settled.
+const SLIDE_DURATION_MS = 500;
+
+// Clones duplicate content that is already on the page — everything focusable inside them is
+// taken out of the tab order.
+const FOCUSABLE_SELECTOR = 'a[href], button, input, select, textarea, [tabindex]';
 
 /* stimulusFetch: 'lazy' */
 export default class extends Controller {
@@ -14,10 +21,32 @@ export default class extends Controller {
     countSlide = 0;
     intervalAutoplayId = null;
     isAnimation = false;
+    isControllerConnected = false;
+    paginationItemClassSelect = null;
+    paginationItemClass = null;
+
+    // Attribute names follow the identifier the controller was registered under: the same class
+    // can be registered as `slideshow`, `banner`, … and a clone must carry that instance's own
+    // names, otherwise Stimulus keeps seeing the clones as real slide targets.
+    get cloneAttribute() {
+        return `data-${this.identifier}-clone`;
+    }
+
+    get targetAttribute() {
+        return `data-${this.identifier}-target`;
+    }
+
+    // Honour the OS "reduce motion" setting: the slide still changes, it just does not animate.
+    get prefersReducedMotion() {
+        return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
 
     // Index normalization when the position moves past the slide range boundaries
     get loopedSlideIndex() {
         const totalSlides = this.countSlide;
+        if(totalSlides < 1) {
+            return 1;
+        }
         return ((this.selectedSlide - 1) % totalSlides + totalSlides) % totalSlides + 1;
     }
 
@@ -69,7 +98,8 @@ export default class extends Controller {
     connect() {
         // A Turbo snapshot caches the DOM together with clones from the previous connection —
         // remove them, otherwise they double up on a restore visit and break countSlide.
-        this.element.querySelectorAll('[data-slideshow-clone]').forEach(clone => clone.remove());
+        this.element.querySelectorAll(`[${this.cloneAttribute}]`).forEach(clone => clone.remove());
+        this.isControllerConnected = true;
         this.selectedSlide = 1;
         this.isAnimation = false;
 
@@ -79,13 +109,14 @@ export default class extends Controller {
 
         if(this.dynamicAspectValue) {
             this.slideImages = this.slideTargets.map(slide => slide.querySelector('img'));
-            this.element.style.transition = 'aspect-ratio 500ms ease-in-out';
+            if(!this.prefersReducedMotion) {
+                this.element.style.transition = `aspect-ratio ${SLIDE_DURATION_MS}ms ease-in-out`;
+            }
         }
 
-        if(this.hasPaginationItemTarget && this.countSlide > 1){
-            this.paginationItemClassSelect = this.paginationItemTargets[0].getAttribute('class');
-            this.paginationItemClass = this.paginationItemTargets[1].getAttribute('class');
-
+        // Looping rests on the clones alone — pagination is an independent, optional part of
+        // the markup and must not decide whether the slideshow can loop.
+        if(this.countSlide > 1){
             // clone the first and the last slide for loop sliding
             this.slideTargets[this.countSlide - 1].insertAdjacentElement('afterend', this.createSlideClone(this.slideTargets[0]));
             this.slideTargets[0].insertAdjacentElement('beforebegin', this.createSlideClone(this.slideTargets[this.countSlide - 1]));
@@ -95,24 +126,49 @@ export default class extends Controller {
             this.wrapperTarget.style.transform='translateX(-100%)';
         }
 
+        this.readPaginationClasses();
+        // The dots keep the state of the previous connection (restore visit) — repaint them for
+        // the slide actually shown now.
+        this.updatePagination();
+
         if(this.autoplayIntervalValue) {
             this.handlerAutoplayStart();
             this.element.addEventListener('mouseenter', this.handlerAutoplayStop);
             this.element.addEventListener('mouseleave', this.handlerAutoplayStart);
-            // pause autoplay while the window is out of focus (focus()/unfocus() below)
-            useWindowFocus(this);
+            // pause autoplay while the window is out of focus (focus()/unfocus() below).
+            // stimulus-use is an optional peer dependency, so it is pulled in on demand: without
+            // it autoplay simply keeps running in a background window, instead of the whole
+            // controller failing to load.
+            import('stimulus-use')
+                .then(({ useWindowFocus }) => {
+                    if(this.isControllerConnected) {
+                        useWindowFocus(this);
+                    }
+                })
+                .catch(() => {});
         }
         this.wrapperTarget.addEventListener('transitionend', this.handlerAnimationEnd);
     }
 
     // A clone is a utility copy used for loop sliding: not a slide target (it does not shift
-    // slideTargets/countSlide), marked with data-slideshow-clone for cleanup on reconnect.
+    // slideTargets/countSlide), marked with the clone attribute for cleanup on reconnect.
     // Other attributes and nested controllers' targets are kept intact, so behaviors like
     // image-loading placeholders keep working on the clone.
     createSlideClone(slide) {
         const clone = slide.cloneNode(true);
-        clone.removeAttribute('data-slideshow-target');
-        clone.setAttribute('data-slideshow-clone', '');
+        clone.removeAttribute(this.targetAttribute);
+        clone.setAttribute(this.cloneAttribute, '');
+
+        // The clone repeats a slide that is already on the page: hide it from assistive
+        // technology, keep it out of the tab order and drop the ids it copied along, which
+        // would otherwise be duplicated in the document.
+        clone.setAttribute('aria-hidden', 'true');
+        clone.removeAttribute('id');
+        clone.querySelectorAll('[id]').forEach(node => node.removeAttribute('id'));
+        if(clone.matches(FOCUSABLE_SELECTOR)) {
+            clone.setAttribute('tabindex', '-1');
+        }
+        clone.querySelectorAll(FOCUSABLE_SELECTOR).forEach(node => node.setAttribute('tabindex', '-1'));
 
         const img = clone.querySelector('img');
         if(img) {
@@ -121,6 +177,44 @@ export default class extends Controller {
         }
 
         return clone;
+    }
+
+    // The active and the normal look of the dots come from the class attributes of the first two
+    // pagination items — but navigation rewrites those very attributes, so on a restore visit
+    // (cached Turbo snapshot) the first dot no longer carries the active class. The pair is
+    // therefore stored on the element at the first connect and read back from there afterwards;
+    // a cached snapshot brings the stored values along with the markup.
+    readPaginationClasses() {
+        this.paginationItemClassSelect = null;
+        this.paginationItemClass = null;
+
+        // Both looks have to be readable: with a single dot there is nothing to compare against.
+        if(this.paginationItemTargets.length < 2) {
+            return;
+        }
+
+        const selectAttribute = `data-${this.identifier}-item-class-select`;
+        const normalAttribute = `data-${this.identifier}-item-class`;
+
+        if(!this.element.hasAttribute(selectAttribute)) {
+            this.element.setAttribute(selectAttribute, this.paginationItemTargets[0].getAttribute('class') ?? '');
+            this.element.setAttribute(normalAttribute, this.paginationItemTargets[1].getAttribute('class') ?? '');
+        }
+
+        this.paginationItemClassSelect = this.element.getAttribute(selectAttribute);
+        this.paginationItemClass = this.element.getAttribute(normalAttribute);
+    }
+
+    updatePagination() {
+        if(!this.paginationItemClassSelect || !this.paginationItemClass){
+            return;
+        }
+
+        this.paginationItemTargets.forEach(item => {
+            item.setAttribute('class', this.paginationItemClass);
+        });
+
+        this.paginationItemTargets[this.loopedSlideIndex - 1]?.setAttribute('class', this.paginationItemClassSelect);
     }
 
     // Fallback / self-correction of the server-rendered inline aspect: takes naturalWidth/Height
@@ -174,18 +268,23 @@ export default class extends Controller {
     }
 
     disconnect() {
+        this.isControllerConnected = false;
         this.firstSlideImg?.removeEventListener('load', this.applyAspect);
-        this.wrapperTarget.removeEventListener('transitionend', this.handlerAnimationEnd);
+        // The wrapper can already be gone (a stream or a morph replaced the inner markup) —
+        // teardown must not throw on a missing target before the autoplay timer is cleared.
+        if(this.hasWrapperTarget) {
+            this.wrapperTarget.removeEventListener('transitionend', this.handlerAnimationEnd);
+        }
         if(this.dynamicAspectValue) {
             // Clean up inline state so no stale references/styles survive a reconnect (Turbo morphing).
             this.element.style.transition = '';
             this.slideImages = null;
         }
-        if(this.autoplayIntervalValue) {
-            this.handlerAutoplayStop();
-            this.element.removeEventListener('mouseenter', this.handlerAutoplayStop);
-            this.element.removeEventListener('mouseleave', this.handlerAutoplayStart);
-        }
+        // Unconditional: the value can change between connect and disconnect, while stopping an
+        // autoplay that never started — and removing listeners that were never added — is a no-op.
+        this.handlerAutoplayStop();
+        this.element.removeEventListener('mouseenter', this.handlerAutoplayStop);
+        this.element.removeEventListener('mouseleave', this.handlerAutoplayStart);
     }
 
     next() {
@@ -197,8 +296,12 @@ export default class extends Controller {
         this.selectedSlide--;
         this.showCurrentSlide();
     }
-    dragEnd({ detail: { distanceX }}) {
-        if(Math.abs(distanceX) < 30){
+    // The swipe controller settles every gesture with dragEnd and names the direction it
+    // recognised in `detail.swipe`. Anything the slideshow does not navigate on — a vertical
+    // swipe, a drag too short to count as one — has to be snapped back, otherwise the track
+    // stays parked at the offset written by dragging() with its transition still off.
+    dragEnd({ detail }) {
+        if(detail?.swipe !== 'swipeLeft' && detail?.swipe !== 'swipeRight'){
             this.showCurrentSlide();
         }
     }
@@ -214,7 +317,10 @@ export default class extends Controller {
         this.wrapperTarget.style.transition = '';
     }
     transformOn() {
-        this.wrapperTarget.style.transition = 'transform 500ms cubic-bezier(0.4, 0, 0.2, 1)';
+        // Reduced motion: the transition stays off, so the slide changes instantly.
+        this.wrapperTarget.style.transition = this.prefersReducedMotion
+            ? ''
+            : `transform ${SLIDE_DURATION_MS}ms cubic-bezier(0.4, 0, 0.2, 1)`;
     }
 
     go(event) {
@@ -223,6 +329,13 @@ export default class extends Controller {
     }
 
     showCurrentSlide() {
+        // Without a second slide there are no clones, so any shift would park the track on empty
+        // space — the position stays pinned to the only slide.
+        if(this.countSlide < 2) {
+            this.selectedSlide = 1;
+            return;
+        }
+
         if(this.isAnimation) {
             this.handlerAnimationEnd();
         }
@@ -231,8 +344,16 @@ export default class extends Controller {
             this.handlerAutoplayStart();
         }
 
+        // No animation to ride through the edge clone — normalize the index up front and jump
+        // straight to the target slide.
+        if(this.prefersReducedMotion) {
+            this.selectedSlide = this.loopedSlideIndex;
+        }
+
+        // Raised before the frame is scheduled: two navigations landing in the same frame must
+        // not both skip the forced completion above and step twice past the edge clone.
+        this.isAnimation = true;
         requestAnimationFrame(() => {
-            this.isAnimation = true;
             // Write the aspect and the transform in the same frame, so the container height
             // animates in sync with the shift.
             if(this.dynamicAspectValue) {
@@ -242,15 +363,6 @@ export default class extends Controller {
             this.wrapperTarget.style.transform = `translateX(${-1*(this.selectedSlide) * 100}%)`;
         });
 
-        if(this.hasPaginationItemTarget && this.paginationItemClassSelect && this.paginationItemClass){
-            this.paginationItemTargets.forEach(item => {
-                item.setAttribute('class', this.paginationItemClass);
-            });
-
-            const currentPaginationItem = this.paginationItemTargets[(this.loopedSlideIndex - 1)];
-            if (currentPaginationItem) {
-                currentPaginationItem.setAttribute('class', this.paginationItemClassSelect);
-            }
-        }
+        this.updatePagination();
     }
 }

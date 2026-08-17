@@ -24,8 +24,10 @@ php bin/console importmap:require @sol-parts/sol-stimulus-components/slideshow
 ```
 
 The window-focus autoplay pause uses
-[stimulus-use](https://stimulus-use.github.io/stimulus-use) (a peer
-dependency). The `swipe` controller does not need it.
+[stimulus-use](https://stimulus-use.github.io/stimulus-use) (an optional peer
+dependency): it is imported on demand, and without it autoplay keeps running
+in a background window instead of pausing. The `swipe` controller does not
+need it.
 
 ## Usage
 
@@ -44,7 +46,12 @@ app.register('swipe', Swipe); // for gesture support
 The slideshow renders from your own markup: slides are `slide` targets, the
 sliding track is the `wrapper` target, pagination dots are `paginationItem`
 targets — the `class` attributes of the first two dots define the active and
-the normal look. Edge slides are cloned automatically for seamless looping.
+the normal look. Pagination is optional: edge slides are cloned automatically
+for seamless looping whether dots are rendered or not.
+
+Clones are hidden from assistive technology and kept out of the tab order, and
+under `prefers-reduced-motion: reduce` slides change instantly instead of
+animating.
 
 ```html
 <div data-controller="slideshow swipe"

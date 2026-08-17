@@ -7,6 +7,7 @@ export default class extends Controller {
     startX = false;
     startY = false;
     clickElement = null;
+    clickElementPointerEvents = null;
     /** When true, neither swipe directions nor the click event are dispatched
      * (gesture started on a `[data-swipe-ignore]` descendant — e.g. a button
      * with its own handlers inside the swipe area). */
@@ -39,6 +40,7 @@ export default class extends Controller {
             if (this.clickElement) {
                 // Suppress the native link click while a mouse drag is in progress;
                 // handleEndDrag re-triggers it manually when the gesture was a plain click.
+                this.clickElementPointerEvents = this.clickElement.style.pointerEvents;
                 this.clickElement.style.pointerEvents = 'none';
             }
         }
@@ -82,19 +84,22 @@ export default class extends Controller {
         }
 
         if(this.clickElement){
-            this.clickElement.style.pointerEvents = '';
+            this.clickElement.style.pointerEvents = this.clickElementPointerEvents;
             if(!eventName && this.clickElement.hasAttribute('href')){
                 this.clickElement.click();
             }
             this.clickElement = null;
+            this.clickElementPointerEvents = null;
         }
 
-        if(!eventName) {
-            if(!skipSwipe) {
-                this.dispatch('click', this.#detailEvent(event));
-            }
-        }else{
-            this.dispatch('dragEnd', this.#detailEvent(event));
+        // dragEnd closes EVERY gesture and names the recognised direction in `detail.swipe`
+        // (null when there was none): a consumer that moved something while `dragging` fired
+        // needs one reliable place to settle it, and deducing that from the distance would mean
+        // duplicating the threshold above on the other side of the event.
+        this.dispatch('dragEnd', this.#detailEvent(event, { swipe: eventName }));
+
+        if(!eventName && !skipSwipe) {
+            this.dispatch('click', this.#detailEvent(event));
         }
 
         this.dragging = false;
@@ -102,13 +107,14 @@ export default class extends Controller {
         this.startY = false;
     };
 
-    #detailEvent(event) {
+    #detailEvent(event, extra = {}) {
         return {
             detail: {
                 clientX: this.#clientX(event),
                 clientY: this.#clientY(event),
                 distanceX: this.#clientX(event) - this.startX,
-                distanceY: this.#clientY(event) - this.startY
+                distanceY: this.#clientY(event) - this.startY,
+                ...extra
             }
         };
     }

@@ -57,8 +57,12 @@ A gesture longer than 30px counts as a swipe; a shorter one — as a click.
 | `swipe:swipeLeft` / `swipe:swipeRight` / `swipe:swipeUp` / `swipe:swipeDown` | travel exceeded 30px, dominant axis picked |
 | `swipe:dragStart` | gesture started |
 | `swipe:dragging` | pointer moved (throttled via `requestAnimationFrame`) |
-| `swipe:dragEnd` | gesture ended with a swipe |
+| `swipe:dragEnd` | gesture ended — `detail.swipe` names the recognised direction, or is `null` |
 | `swipe:click` | gesture ended without a swipe |
+
+`swipe:dragEnd` fires for every finished gesture, so anything moved while
+`swipe:dragging` was firing has a single place to settle, without re-deriving
+the 30px threshold on the listening side.
 
 ## Links inside the swipe area
 
