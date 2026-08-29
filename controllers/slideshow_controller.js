@@ -1,4 +1,6 @@
+/* stimulusFetch: 'lazy' */
 import { Controller } from '@hotwired/stimulus';
+import { useWindowFocus } from 'stimulus-use';
 
 // Slide-transition duration: the transform and the container aspect-ratio animate with the
 // same value, so the height never keeps stretching after the slide has already settled.
@@ -8,7 +10,6 @@ const SLIDE_DURATION_MS = 500;
 // taken out of the tab order.
 const FOCUSABLE_SELECTOR = 'a[href], button, input, select, textarea, [tabindex]';
 
-/* stimulusFetch: 'lazy' */
 export default class extends Controller {
     static targets = ['wrapper', 'slide', 'paginationItem'];
     static values = {
@@ -21,7 +22,6 @@ export default class extends Controller {
     countSlide = 0;
     intervalAutoplayId = null;
     isAnimation = false;
-    isControllerConnected = false;
     paginationItemClassSelect = null;
     paginationItemClass = null;
 
@@ -99,7 +99,6 @@ export default class extends Controller {
         // A Turbo snapshot caches the DOM together with clones from the previous connection —
         // remove them, otherwise they double up on a restore visit and break countSlide.
         this.element.querySelectorAll(`[${this.cloneAttribute}]`).forEach(clone => clone.remove());
-        this.isControllerConnected = true;
         this.selectedSlide = 1;
         this.isAnimation = false;
 
@@ -136,16 +135,7 @@ export default class extends Controller {
             this.element.addEventListener('mouseenter', this.handlerAutoplayStop);
             this.element.addEventListener('mouseleave', this.handlerAutoplayStart);
             // pause autoplay while the window is out of focus (focus()/unfocus() below).
-            // stimulus-use is an optional peer dependency, so it is pulled in on demand: without
-            // it autoplay simply keeps running in a background window, instead of the whole
-            // controller failing to load.
-            import('stimulus-use')
-                .then(({ useWindowFocus }) => {
-                    if(this.isControllerConnected) {
-                        useWindowFocus(this);
-                    }
-                })
-                .catch(() => {});
+            useWindowFocus(this);
         }
         this.wrapperTarget.addEventListener('transitionend', this.handlerAnimationEnd);
     }
@@ -268,7 +258,6 @@ export default class extends Controller {
     }
 
     disconnect() {
-        this.isControllerConnected = false;
         this.firstSlideImg?.removeEventListener('load', this.applyAspect);
         // The wrapper can already be gone (a stream or a morph replaced the inner markup) —
         // teardown must not throw on a missing target before the autoplay timer is cleared.

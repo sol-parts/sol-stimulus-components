@@ -14,20 +14,19 @@ is out of focus, pagination, and drag/flick support when paired with the
 With npm or any bundler:
 
 ```bash
-npm install @sol-parts/sol-stimulus-components
+npm install @sol-parts/sol-stimulus-components stimulus-use
 ```
 
 With Symfony AssetMapper:
 
 ```bash
+php bin/console importmap:require stimulus-use
 php bin/console importmap:require @sol-parts/sol-stimulus-components/slideshow
 ```
 
-The window-focus autoplay pause uses
-[stimulus-use](https://stimulus-use.github.io/stimulus-use) (an optional peer
-dependency): it is imported on demand, and without it autoplay keeps running
-in a background window instead of pausing. The `swipe` controller does not
-need it.
+The window-focus autoplay pause uses the package's
+[stimulus-use](https://stimulus-use.github.io/stimulus-use) peer dependency.
+The `swipe` controller itself does not use it.
 
 ## Usage
 

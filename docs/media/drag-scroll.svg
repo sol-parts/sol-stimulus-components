@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="340" viewBox="0 0 600 340" role="img" aria-label="drag-scroll — a mouse drag pulls the row, touch stays native">
+  <defs>
+    <linearGradient id="drag-scroll-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a"/><stop offset="1" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <linearGradient id="drag-scroll-card" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4f46e5"/><stop offset="1" stop-color="#c026d3"/>
+    </linearGradient>
+    <clipPath id="drag-scroll-clip"><rect x="44" y="80" width="512" height="172" rx="12"/></clipPath>
+  </defs>
+
+  <rect width="600" height="340" rx="14" fill="url(#drag-scroll-bg)"/>
+  <circle cx="530" cy="20" r="130" fill="#ffffff" opacity="0.03"/>
+  <circle cx="60" cy="330" r="100" fill="#ffffff" opacity="0.04"/>
+
+  <text x="44" y="52" font-family="ui-monospace, monospace" font-size="14" fill="#a5b4fc" letter-spacing="1">&lt;div data-controller="drag-scroll"&gt;</text>
+
+  <g clip-path="url(#drag-scroll-clip)">
+    <rect x="44" y="80" width="512" height="172" fill="#ffffff" opacity="0.04"/>
+    <g fill="url(#drag-scroll-card)">
+      <rect x="-40" y="106" width="150" height="120" rx="12" opacity="0.4"/>
+      <rect x="126" y="106" width="150" height="120" rx="12" opacity="0.7"/>
+      <rect x="292" y="106" width="150" height="120" rx="12"/>
+      <rect x="458" y="106" width="150" height="120" rx="12" opacity="0.55"/>
+    </g>
+  </g>
+  <rect x="44" y="80" width="512" height="172" rx="12" fill="none" stroke="#ffffff" stroke-opacity="0.14"/>
+
+  <g transform="translate(300, 166)">
+    <circle r="44" fill="none" stroke="#f0abfc" stroke-opacity="0.28" stroke-width="6"/>
+    <circle r="29" fill="#fdf4ff"/>
+    <g fill="none" stroke="#f0abfc" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M -64 0 h 20 M -56 -10 l -10 10 l 10 10"/>
+      <path d="M 64 0 h -20 M 56 -10 l 10 10 l -10 10"/>
+    </g>
+  </g>
+
+  <text x="44" y="308" font-family="ui-monospace, monospace" font-size="14" fill="#818cf8">drag-scroll</text>
+  <text x="142" y="308" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14" fill="#94a3b8">· mouse drag · native touch</text>
+</svg>

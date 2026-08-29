@@ -1,13 +1,15 @@
 {
     "name": "@sol-parts/sol-stimulus-components",
-    "version": "0.2.0",
-    "description": "Composable Stimulus controllers extracted from the sol.parts e-commerce platform: swipe gestures and a dependency-light looping slideshow.",
+    "version": "0.3.0",
+    "description": "Composable Stimulus controllers extracted from the SOLPARTS e-commerce platform: swipe gestures, pointer drag scrolling, scroll strips and a looping slideshow.",
     "keywords": [
         "stimulus",
         "stimulusjs",
         "stimulus controller",
         "swipe",
         "gesture",
+        "scroll",
+        "overflow",
         "slideshow",
         "slider",
         "carousel"
@@ -25,16 +27,13 @@
     ],
     "exports": {
         "./swipe": "./controllers/swipe_controller.js",
+        "./drag-scroll": "./controllers/drag-scroll_controller.js",
+        "./scroll-strip": "./controllers/scroll-strip_controller.js",
         "./slideshow": "./controllers/slideshow_controller.js",
         "./package.json": "./package.json"
     },
     "peerDependencies": {
         "@hotwired/stimulus": "^3.0.0",
         "stimulus-use": ">=0.50.0 <1.0.0"
-    },
-    "peerDependenciesMeta": {
-        "stimulus-use": {
-            "optional": true
-        }
     }
 }

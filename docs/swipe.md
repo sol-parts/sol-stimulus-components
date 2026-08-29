@@ -49,20 +49,23 @@ or your own controller:
 
 ## Events
 
-Every event carries `{ clientX, clientY, distanceX, distanceY }` in `detail`.
-A gesture longer than 30px counts as a swipe; a shorter one — as a click.
+Every event carries `{ clientX, clientY, distanceX, distanceY, pointerType,
+threshold }` in `detail`. `pointerType` is `mouse` or `touch`. A gesture longer
+than the configured threshold counts as a swipe; a shorter one — as a click.
 
 | Event | Fired when |
 |---|---|
-| `swipe:swipeLeft` / `swipe:swipeRight` / `swipe:swipeUp` / `swipe:swipeDown` | travel exceeded 30px, dominant axis picked |
+| `swipe:swipeLeft` / `swipe:swipeRight` / `swipe:swipeUp` / `swipe:swipeDown` | travel exceeded the threshold, dominant axis picked |
 | `swipe:dragStart` | gesture started |
 | `swipe:dragging` | pointer moved (throttled via `requestAnimationFrame`) |
-| `swipe:dragEnd` | gesture ended — `detail.swipe` names the recognised direction, or is `null` |
+| `swipe:dragEnd` | gesture ended — `detail.swipe` names the recognised direction, or is `null`; canceled gestures also carry `detail.canceled=true` |
 | `swipe:click` | gesture ended without a swipe |
 
 `swipe:dragEnd` fires for every finished gesture, so anything moved while
 `swipe:dragging` was firing has a single place to settle, without re-deriving
-the 30px threshold on the listening side.
+the threshold on the listening side.
+
+Set `data-swipe-threshold-value` to change the default `30` pixel threshold.
 
 ## Links inside the swipe area
 
@@ -73,6 +76,9 @@ never navigate away.
 
 ## Opting out: `data-swipe-ignore`
 
-Descendants marked with `data-swipe-ignore` (e.g. buttons with their own
-handlers inside the swipe area) opt out: gestures starting on them dispatch
-neither swipe events nor `swipe:click`.
+Buttons, form controls and editable content are ignored automatically. Any
+other descendant can opt out with `data-swipe-ignore`. Gestures starting in
+ignored content dispatch neither drag/swipe events nor `swipe:click`.
+
+Nested `swipe` controllers are isolated: only the closest controller handles
+the gesture.

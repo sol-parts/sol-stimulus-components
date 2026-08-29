@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="340" viewBox="0 0 600 340" role="img" aria-label="scroll-strip — buttons and edge gradients share one state">
+  <defs>
+    <linearGradient id="scroll-strip-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a"/><stop offset="1" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <linearGradient id="scroll-strip-card" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4f46e5"/><stop offset="1" stop-color="#c026d3"/>
+    </linearGradient>
+    <linearGradient id="scroll-strip-fade" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0" stop-color="#151c34"/><stop offset="1" stop-color="#151c34" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="scroll-strip-clip"><rect x="44" y="80" width="512" height="172" rx="12"/></clipPath>
+  </defs>
+
+  <rect width="600" height="340" rx="14" fill="url(#scroll-strip-bg)"/>
+  <circle cx="530" cy="20" r="130" fill="#ffffff" opacity="0.03"/>
+  <circle cx="60" cy="330" r="100" fill="#ffffff" opacity="0.04"/>
+
+  <text x="44" y="52" font-family="ui-monospace, monospace" font-size="14" fill="#a5b4fc" letter-spacing="1">&lt;div data-controller="scroll-strip"&gt;</text>
+
+  <g clip-path="url(#scroll-strip-clip)">
+    <rect x="44" y="80" width="512" height="172" fill="#151c34"/>
+    <g fill="url(#scroll-strip-card)">
+      <rect x="72" y="106" width="132" height="120" rx="12"/>
+      <rect x="218" y="106" width="132" height="120" rx="12"/>
+      <rect x="364" y="106" width="132" height="120" rx="12"/>
+      <rect x="510" y="106" width="132" height="120" rx="12"/>
+    </g>
+    <rect x="424" y="80" width="132" height="172" fill="url(#scroll-strip-fade)"/>
+  </g>
+  <rect x="44" y="80" width="512" height="172" rx="12" fill="none" stroke="#ffffff" stroke-opacity="0.14"/>
+
+  <g opacity="0.28">
+    <circle cx="88" cy="166" r="25" fill="#ffffff"/>
+    <path d="M 94 154 l -12 12 l 12 12" fill="none" stroke="#1e1b4b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <circle cx="512" cy="166" r="25" fill="#ffffff"/>
+  <path d="M 506 154 l 12 12 l -12 12" fill="none" stroke="#1e1b4b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <text x="44" y="308" font-family="ui-monospace, monospace" font-size="14" fill="#818cf8">scroll-strip</text>
+  <text x="150" y="308" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14" fill="#94a3b8">· buttons + gradients in one state</text>
+</svg>
